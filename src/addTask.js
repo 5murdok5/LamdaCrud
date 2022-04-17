@@ -1,9 +1,13 @@
 const { v4 } = require('uuid')
 const AWS = require('aws-sdk')
+
+const jsonBodyParser = require('@middy/http-json-body-parser')
+const middy = require('@middy/core')
+
 const addTask = async (event) => {
   const db = new AWS.DynamoDB.DocumentClient()
 
-  const { title, descripcion } = JSON.parse(event.body)
+  const { title, descripcion } = event.body
   const createAt = new Date.now()
   const id = v4()
 
@@ -14,6 +18,7 @@ const addTask = async (event) => {
     createAt,
     done: false,
   }
+
   await db
     .put({
       TableName: 'TaskTable',
@@ -28,5 +33,5 @@ const addTask = async (event) => {
 }
 
 module.exports = {
-  addTask,
+  addTask: middy(addTask).use(jsonBodyParser()),
 }
